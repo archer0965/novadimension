@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Sparkles, ExternalLink } from "lucide-react";
+import { Menu, X, Sparkles, ExternalLink, LogIn } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { PARENT_SITE_URL } from "@/lib/constants";
+import { getNovaOsLoginUrl } from "@/lib/novaos-hub";
 import { SITE_NAME } from "@/lib/site";
 
 const links = [
@@ -102,6 +103,13 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={getNovaOsLoginUrl()}
+            className="btn btn-secondary px-4 text-sm"
+          >
+            <LogIn size={15} aria-hidden />
+            登入
+          </a>
           <Link
             href={resolveHref(pathname, "#studio")}
             className="btn btn-primary px-4 text-sm"
@@ -113,7 +121,7 @@ export default function Navbar() {
             href={PARENT_SITE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-secondary px-4 text-sm"
+            className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-ink-muted transition-colors hover:text-ink"
           >
             返回拓新雲端
             <ExternalLink size={14} aria-hidden />
@@ -149,9 +157,17 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={getNovaOsLoginUrl()}
+            className="btn btn-secondary mt-2 w-full"
+            onClick={() => setOpen(false)}
+          >
+            <LogIn size={15} aria-hidden />
+            登入拓新雲端
+          </a>
           <Link
             href={resolveHref(pathname, "#studio")}
-            className="btn btn-primary mt-2 w-full"
+            className="btn btn-primary w-full"
             onClick={() => setOpen(false)}
           >
             <Sparkles size={15} aria-hidden />
@@ -161,7 +177,7 @@ export default function Navbar() {
             href={PARENT_SITE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-secondary w-full"
+            className="inline-flex items-center justify-center gap-1 rounded-2xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-cream hover:text-ink"
             onClick={() => setOpen(false)}
           >
             返回拓新雲端

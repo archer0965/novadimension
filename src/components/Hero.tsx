@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Sparkles, Timer } from "lucide-react";
+import { LogIn, Sparkles, Timer } from "lucide-react";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import { getNovaOsLoginUrl } from "@/lib/novaos-hub";
 
 export default function Hero() {
   return (
@@ -22,12 +23,13 @@ export default function Hero() {
               <Sparkles size={16} aria-hidden />
               上傳照片 ‧ 免費體驗 1 次
             </Link>
-            <Link href="#pricing" className="btn btn-secondary">
-              查看方案與收費
-            </Link>
+            <a href={getNovaOsLoginUrl()} className="btn btn-secondary">
+              <LogIn size={16} aria-hidden />
+              登入拓新雲端
+            </a>
           </div>
           <p className="mt-5 text-sm text-ink-muted">
-            拓維空間 · 附屬於拓新雲端 · 註冊即送 1 次 Credit
+            拓維空間 · 附屬於拓新雲端 · 登入／註冊後可管理訂閱與 Credit
           </p>
         </div>
 

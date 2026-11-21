@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, ExternalLink } from "lucide-react";
 import { IG_PROFILE_URL, PARENT_SITE_URL } from "@/lib/constants";
-import { NOVAOS_LEGAL_URL } from "@/lib/novaos-hub";
+import { getNovaOsLoginUrl, NOVAOS_LEGAL_URL } from "@/lib/novaos-hub";
 import { PARENT_BRAND, SITE_NAME } from "@/lib/site";
 
 const footerLinks = [
@@ -62,6 +62,12 @@ export default function Footer() {
                 {link.label}
               </Link>
             ))}
+            <a
+              href={getNovaOsLoginUrl()}
+              className="text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+            >
+              登入
+            </a>
             <a
               href={PARENT_SITE_URL}
               target="_blank"
