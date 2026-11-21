@@ -125,27 +125,32 @@ export default function AdminDashboard() {
           <div>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink"
+              className="inline-flex items-center gap-2 text-sm font-medium text-teal-800 transition-colors hover:text-ink"
             >
               <ArrowLeft size={16} aria-hidden />
-              回到網站
+              前往功能工作台／前台首頁
             </Link>
             <h1 className="headline mt-3 text-[clamp(1.8rem,4vw,2.6rem)]">
               後台數據
             </h1>
             <p className="mt-2 text-sm text-ink-muted">
-              拓維空間NovaDimension｜依台北時間統計
+              拓維空間NovaDimension｜依台北時間統計 · 管理與前台可自由切換
             </p>
           </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setReloadToken((value) => value + 1)}
-            disabled={loading}
-          >
-            <RefreshCw size={16} aria-hidden />
-            重新整理
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/#studio" className="btn btn-primary">
+              使用 AI 工作室
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setReloadToken((value) => value + 1)}
+              disabled={loading}
+            >
+              <RefreshCw size={16} aria-hidden />
+              重新整理
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
