@@ -103,20 +103,19 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <a
-            href={getNovaOsLoginUrl()}
-            className="btn btn-secondary px-4 text-sm"
-          >
-            <LogIn size={15} aria-hidden />
-            登入
-          </a>
           <Link
             href={resolveHref(pathname, "#studio")}
+            className="text-[0.8125rem] font-medium text-ink-muted transition-colors hover:text-ink"
+          >
+            AI 工作室
+          </Link>
+          <a
+            href={getNovaOsLoginUrl()}
             className="btn btn-primary px-4 text-sm"
           >
-            <Sparkles size={15} aria-hidden />
-            免費試用 1 次
-          </Link>
+            <LogIn size={15} aria-hidden />
+            登入贈免費體驗一次
+          </a>
           <a
             href={PARENT_SITE_URL}
             target="_blank"
@@ -159,19 +158,19 @@ export default function Navbar() {
           ))}
           <a
             href={getNovaOsLoginUrl()}
-            className="btn btn-secondary mt-2 w-full"
+            className="btn btn-primary mt-2 w-full"
             onClick={() => setOpen(false)}
           >
             <LogIn size={15} aria-hidden />
-            登入拓新雲端
+            登入贈免費體驗一次
           </a>
           <Link
             href={resolveHref(pathname, "#studio")}
-            className="btn btn-primary w-full"
+            className="btn btn-secondary w-full"
             onClick={() => setOpen(false)}
           >
             <Sparkles size={15} aria-hidden />
-            免費試用 1 次
+            先看 AI 工作室
           </Link>
           <a
             href={PARENT_SITE_URL}

@@ -19,17 +19,17 @@ export default function Hero() {
             讓 AI 幫你做精準動線規劃、採光分析與 3D 軟裝擬真渲染。
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href="#studio" className="btn btn-primary">
-              <Sparkles size={16} aria-hidden />
-              上傳照片 ‧ 免費體驗 1 次
-            </Link>
-            <a href={getNovaOsLoginUrl()} className="btn btn-secondary">
+            <a href={getNovaOsLoginUrl()} className="btn btn-primary">
               <LogIn size={16} aria-hidden />
-              登入拓新雲端
+              登入贈免費體驗一次
             </a>
+            <Link href="#studio" className="btn btn-secondary">
+              <Sparkles size={16} aria-hidden />
+              先看 AI 工作室
+            </Link>
           </div>
           <p className="mt-5 text-sm text-ink-muted">
-            拓維空間 · 附屬於拓新雲端 · 登入／註冊後可管理訂閱與 Credit
+            拓維空間 · 附屬於拓新雲端 · 登入即贈 1 次免費體驗 Credit
           </p>
         </div>
 

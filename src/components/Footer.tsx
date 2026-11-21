@@ -66,7 +66,7 @@ export default function Footer() {
               href={getNovaOsLoginUrl()}
               className="text-sm font-medium text-ink-muted transition-colors hover:text-ink"
             >
-              登入
+              登入贈免費體驗一次
             </a>
             <a
               href={PARENT_SITE_URL}

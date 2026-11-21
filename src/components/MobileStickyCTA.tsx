@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { LogIn } from "lucide-react";
+import { getNovaOsLoginUrl } from "@/lib/novaos-hub";
 
 export default function MobileStickyCTA() {
   const pathname = usePathname();
@@ -31,10 +31,10 @@ export default function MobileStickyCTA() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[rgba(253,251,247,0.94)] p-3 backdrop-blur-xl md:hidden">
-      <Link href="/#studio" className="btn btn-primary w-full">
-        <Sparkles size={18} aria-hidden />
-        免費試用 1 次
-      </Link>
+      <a href={getNovaOsLoginUrl()} className="btn btn-primary w-full">
+        <LogIn size={18} aria-hidden />
+        登入贈免費體驗一次
+      </a>
     </div>
   );
 }
