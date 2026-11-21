@@ -110,7 +110,7 @@ export default function Navbar() {
             AI 工作室
           </Link>
           <a
-            href={getNovaOsLoginUrl()}
+            href={getNovaOsLoginUrl(pathname || "/")}
             className="btn btn-primary px-4 text-sm"
           >
             <LogIn size={15} aria-hidden />
@@ -157,7 +157,7 @@ export default function Navbar() {
             </Link>
           ))}
           <a
-            href={getNovaOsLoginUrl()}
+            href={getNovaOsLoginUrl(pathname || "/")}
             className="btn btn-primary mt-2 w-full"
             onClick={() => setOpen(false)}
           >

@@ -9,7 +9,23 @@ export const NOVAOS_LEGAL_URL = `${NOVAOS_HUB_URL}/legal`;
 
 export const NOVAOS_BILLING_PATH = "/dashboard/pass#upgrade";
 
-const DEFAULT_RETURN_TO = `${SITE_URL}/`;
+function toLocalPath(returnTo: string): string {
+  if (returnTo.startsWith("http://") || returnTo.startsWith("https://")) {
+    try {
+      const u = new URL(returnTo);
+      return `${u.pathname}${u.search}` || "/";
+    } catch {
+      return "/";
+    }
+  }
+  return returnTo.startsWith("/") ? returnTo : `/${returnTo}`;
+}
+
+/** Build absolute product receive URL for hub `?next=`. */
+export function toReceiveReturnUrl(returnTo = "/"): string {
+  const path = toLocalPath(returnTo);
+  return `${SITE_URL}/auth/receive?next=${encodeURIComponent(path)}`;
+}
 
 /**
  * 付費升級：導向主站登入 → 訂閱中控（綠界 ECPay）
@@ -34,11 +50,13 @@ export function getNovaOsUpgradeUrl(): string {
   return getNovaOsCheckoutUrl();
 }
 
-/** Unified auth entry — always NovaOS hub login. */
-export function getNovaOsLoginUrl(returnTo = DEFAULT_RETURN_TO): string {
-  return `${NOVAOS_HUB_URL}/login?next=${encodeURIComponent(returnTo)}&product=novadimension`;
+/** Unified auth entry — always NovaOS hub login; return via /auth/receive. */
+export function getNovaOsLoginUrl(returnTo = "/"): string {
+  const receive = toReceiveReturnUrl(returnTo);
+  return `${NOVAOS_HUB_URL}/login?next=${encodeURIComponent(receive)}&product=novadimension`;
 }
 
-export function getNovaOsSignupUrl(returnTo = DEFAULT_RETURN_TO): string {
-  return `${NOVAOS_HUB_URL}/signup?next=${encodeURIComponent(returnTo)}&product=novadimension`;
+export function getNovaOsSignupUrl(returnTo = "/"): string {
+  const receive = toReceiveReturnUrl(returnTo);
+  return `${NOVAOS_HUB_URL}/signup?next=${encodeURIComponent(receive)}&product=novadimension`;
 }
