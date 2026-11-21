@@ -306,6 +306,13 @@ export async function POST(request: Request) {
           );
         }
         console.error("fal generate failed", err);
+        const { reportToHub } = await import("@/lib/novaos-telemetry");
+        await reportToHub({
+          kind: "ai_failure",
+          severity: "error",
+          message: err instanceof Error ? err.message : "FAL_TIMEOUT",
+          meta: { accountId: input.accountId },
+        });
         return NextResponse.json(
           {
             error: "AI 生成逾時或失敗，請稍後再試",

@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, ExternalLink } from "lucide-react";
 import { IG_PROFILE_URL, PARENT_SITE_URL } from "@/lib/constants";
-import { getNovaOsLoginUrl, NOVAOS_LEGAL_URL } from "@/lib/novaos-hub";
+import {
+  getNovaOsLoginUrl,
+  NOVAOS_HUB_URL,
+  NOVAOS_LEGAL_URL,
+} from "@/lib/novaos-hub";
 import { PARENT_BRAND, SITE_NAME } from "@/lib/site";
 
 const footerLinks = [
@@ -43,6 +47,51 @@ export default function Footer() {
                 rel="noopener noreferrer"
               >
                 法律條款
+              </a>
+              {" · "}
+              <a
+                href={`${NOVAOS_HUB_URL}/terms`}
+                className="underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                服務條款
+              </a>
+              {" · "}
+              <a
+                href={`${NOVAOS_HUB_URL}/privacy`}
+                className="underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                隱私
+              </a>
+              {" · "}
+              <a
+                href={`${NOVAOS_HUB_URL}/refund`}
+                className="underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                退款
+              </a>
+              {" · "}
+              <a
+                href="https://line.me/R/ti/p/@469uykad"
+                className="underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LINE 客服
+              </a>
+              {" · "}
+              <a
+                href={`${NOVAOS_HUB_URL}/dashboard/pass`}
+                className="underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                會員中心
               </a>
             </p>
           </div>
