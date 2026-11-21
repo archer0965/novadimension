@@ -28,7 +28,7 @@ function readAccessTokenFromHash(hash: string): string | null {
 export function AuthReceiveClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [message, setMessage] = useState("正在完成登入…");
+  const [message] = useState("正在完成登入…");
 
   useEffect(() => {
     const next = sanitizeNext(searchParams.get("next"));
@@ -66,7 +66,6 @@ export function AuthReceiveClient() {
       return;
     }
 
-    setMessage("登入狀態未帶入，改導向拓新雲端…");
     const returnTo = toReceiveReturnUrl(next);
     window.location.replace(
       `${NOVAOS_HUB_URL}/login?next=${encodeURIComponent(returnTo)}&product=novadimension`,

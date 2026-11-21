@@ -21,11 +21,7 @@ import {
   type AiStyleId,
   type RoomTypeId,
 } from "@/lib/constants";
-import {
-  getAccountIdForRequest,
-  isAuthenticatedClient,
-  isGuestAccountId,
-} from "@/lib/account-client";
+import { getAccountIdForRequest } from "@/lib/account-client";
 import { getNovaOsLoginUrl } from "@/lib/novaos-hub";
 
 type Analysis = {
@@ -114,9 +110,14 @@ export default function AiStudio() {
       if (typeof data.credits === "number") {
         setCreditsLeft(data.credits);
       }
-      setIsGuest(Boolean(data.guest ?? isGuestAccountId(accountId)));
+      if (typeof data.guest === "boolean") {
+        setIsGuest(data.guest);
+      } else {
+        setIsGuest(accountId === "guest" || accountId.startsWith("u_"));
+      }
     } catch {
       setCreditsLeft(0);
+      setIsGuest(true);
     }
   }
 
@@ -143,9 +144,11 @@ export default function AiStudio() {
 
   useEffect(() => {
     const accountId = getAccountIdForRequest();
-    setIsGuest(isGuestAccountId(accountId) || !isAuthenticatedClient());
-    void refreshCredits(accountId);
-    void refreshHistory(accountId);
+    const timer = window.setTimeout(() => {
+      void refreshCredits(accountId);
+      void refreshHistory(accountId);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   function onPickFile(next: File | null) {

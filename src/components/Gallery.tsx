@@ -80,7 +80,7 @@ export default function Gallery() {
               </p>
             </div>
             <p className="text-sm tracking-[0.12em] text-ink-muted uppercase">
-              Inspired by Home Planner
+              Soft Space Inspiration
             </p>
           </div>
         </Reveal>

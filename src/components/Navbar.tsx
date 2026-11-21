@@ -114,7 +114,7 @@ export default function Navbar() {
             className="btn btn-primary px-4 text-sm"
           >
             <LogIn size={15} aria-hidden />
-            登入贈免費體驗一次
+            登入贈 1 次 Credit
           </a>
           <a
             href={PARENT_SITE_URL}
@@ -162,7 +162,7 @@ export default function Navbar() {
             onClick={() => setOpen(false)}
           >
             <LogIn size={15} aria-hidden />
-            登入贈免費體驗一次
+            登入贈 1 次 Credit
           </a>
           <Link
             href={resolveHref(pathname, "#studio")}

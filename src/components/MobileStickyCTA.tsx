@@ -33,7 +33,7 @@ export default function MobileStickyCTA() {
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[rgba(253,251,247,0.94)] p-3 backdrop-blur-xl md:hidden">
       <a href={getNovaOsLoginUrl(pathname || "/")} className="btn btn-primary w-full">
         <LogIn size={18} aria-hidden />
-        登入贈免費體驗一次
+        登入贈 1 次 Credit
       </a>
     </div>
   );

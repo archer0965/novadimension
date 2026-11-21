@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Check, Loader2, ExternalLink } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import { PRICING_PLANS, type PricingPlanId } from "@/lib/constants";
-import { getNovaOsCheckoutUrl, NOVAOS_HUB_URL } from "@/lib/novaos-hub";
+import {
+  getNovaOsCheckoutUrl,
+  getNovaOsLoginUrl,
+  NOVAOS_HUB_URL,
+} from "@/lib/novaos-hub";
 
 export default function Pricing() {
   const [loadingId, setLoadingId] = useState<PricingPlanId | null>(null);
@@ -16,7 +20,7 @@ export default function Pricing() {
 
     try {
       if (planId === "free") {
-        window.location.hash = "studio";
+        window.location.assign(getNovaOsLoginUrl("/#studio"));
         return;
       }
 
@@ -155,7 +159,7 @@ export default function Pricing() {
           >
             拓新雲端 NovaOS
           </a>{" "}
-          登入並完成綠界付款；免費體驗可直接在本站使用 1 次 Credit。
+          登入並完成綠界付款；免費體驗需登入領取 1 次 Credit（每帳號僅一次）。
         </p>
       </div>
     </section>
