@@ -28,7 +28,7 @@ const notoSansTC = Noto_Sans_TC({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME}｜AI 軟裝空間改造`,
+    default: `${SITE_NAME}｜${SITE_TAGLINE}`,
     template: `%s｜${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -59,22 +59,22 @@ export const metadata: Metadata = {
     locale: "zh_TW",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
+    title: `${SITE_NAME}｜${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/hero.jpg",
-        width: 1920,
-        height: 1080,
-        alt: "拓維空間軟裝擬真",
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "拓維空間｜不用大興土木，用 AI 擬真預覽打造你的理想生活空間",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
-    images: ["/hero.jpg"],
+    title: `${SITE_NAME}｜${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
