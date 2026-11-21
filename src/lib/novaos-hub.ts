@@ -29,3 +29,12 @@ export function getNovaOsCheckoutUrl(options?: {
 export function getNovaOsUpgradeUrl(): string {
   return getNovaOsCheckoutUrl();
 }
+
+/** Unified auth entry — always NovaOS hub login. */
+export function getNovaOsLoginUrl(returnTo = "https://novadimension.vercel.app/"): string {
+  return `${NOVAOS_HUB_URL}/login?next=${encodeURIComponent(returnTo)}`;
+}
+
+export function getNovaOsSignupUrl(returnTo = "https://novadimension.vercel.app/"): string {
+  return `${NOVAOS_HUB_URL}/signup?next=${encodeURIComponent(returnTo)}`;
+}
