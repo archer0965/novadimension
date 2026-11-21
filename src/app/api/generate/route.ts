@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { put } from "@vercel/blob";
 import {
   consumeCredit,
   getAccount,
   hasAccess,
+  isGuestAccountId,
   saveAccount,
 } from "@/lib/credits";
 import {
@@ -14,8 +14,12 @@ import {
   resolveStyleId,
 } from "@/lib/fal-generate";
 import type { AiStyleId, RoomTypeId } from "@/lib/constants";
+import { saveGeneration } from "@/lib/generations-store";
+import {
+  getIdempotentResult,
+  saveIdempotentResult,
+} from "@/lib/idempotency-store";
 
-const GUEST_COOKIE = "nd_credits";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MOCK_OUTPUT = "/case-living.jpg";
 
@@ -47,7 +51,7 @@ function buildAnalysis(
         "用圓弧茶几柔化直角動線",
         "窗簾採雙層紗簾＋遮光簾",
       ],
-      renderNote: "擬真圖偏向奶油牆面與淺木地板，強調溫潤居家感。",
+      renderNote: "擬真預覽圖偏向奶油牆面與淺木地板，強調溫潤居家感。",
     },
     "modern-minimal": {
       flow: "精簡動線：入口→沙發→窗景，減少零散矮櫃阻擋。",
@@ -58,7 +62,7 @@ function buildAnalysis(
         "家具高度統一減少視覺雜訊",
         "留白牆面作為焦點背景",
       ],
-      renderNote: "擬真圖強調乾淨量體與低彩度材質對比。",
+      renderNote: "擬真預覽圖強調乾淨量體與低彩度材質對比。",
     },
     "nordic-wood": {
       flow: "沿牆配置收納，中央保留活動空間，強化客廳與陽台串聯。",
@@ -69,7 +73,7 @@ function buildAnalysis(
         "編織地毯界定沙發區",
         "綠色植栽平衡木質比重",
       ],
-      renderNote: "擬真圖以木質家具與織品堆疊呈現北歐層次。",
+      renderNote: "擬真預覽圖以木質家具與織品堆疊呈現北歐層次。",
     },
     bauhaus: {
       flow: "以幾何區塊劃分功能區，動線走直線最短路徑。",
@@ -80,7 +84,7 @@ function buildAnalysis(
         "單色焦點椅提升識別度",
         "金屬細節點綴結構感",
       ],
-      renderNote: "擬真圖突出色塊、線條與機能家具。",
+      renderNote: "擬真預覽圖突出色塊、線條與機能家具。",
     },
     industrial: {
       flow: "開放式配置，沙發與中島／電視牆形成三角動線。",
@@ -91,7 +95,7 @@ function buildAnalysis(
         "深色沙發壓住空間重心",
         "暖光燈具柔化工業冷感",
       ],
-      renderNote: "擬真圖保留結構質感並加入軟質布料平衡。",
+      renderNote: "擬真預覽圖保留結構質感並加入軟質布料平衡。",
     },
   };
 
@@ -104,6 +108,7 @@ async function parseRequest(request: Request): Promise<{
   roomType: string;
   accountId: string;
   wantMock: boolean;
+  clientRequestId: string | null;
 }> {
   const contentType = request.headers.get("content-type") || "";
 
@@ -114,10 +119,19 @@ async function parseRequest(request: Request): Promise<{
     const accountId = String(form.get("accountId") || "guest");
     const wantMock = String(form.get("mock") || "") === "1";
     const existingUrl = String(form.get("imageUrl") || "");
+    const clientRequestIdRaw = String(form.get("clientRequestId") || "").trim();
+    const clientRequestId = clientRequestIdRaw || null;
     const file = form.get("image");
 
     if (existingUrl.startsWith("http") || existingUrl.startsWith("data:")) {
-      return { imageUrl: existingUrl, style, roomType, accountId, wantMock };
+      return {
+        imageUrl: existingUrl,
+        style,
+        roomType,
+        accountId,
+        wantMock,
+        clientRequestId,
+      };
     }
 
     if (!(file instanceof File) || file.size === 0) {
@@ -131,7 +145,14 @@ async function parseRequest(request: Request): Promise<{
     }
 
     const imageUrl = await toUsableImageUrl(file);
-    return { imageUrl, style, roomType, accountId, wantMock };
+    return {
+      imageUrl,
+      style,
+      roomType,
+      accountId,
+      wantMock,
+      clientRequestId,
+    };
   }
 
   const body = (await request.json()) as {
@@ -140,6 +161,7 @@ async function parseRequest(request: Request): Promise<{
     roomType?: string;
     accountId?: string;
     mock?: boolean;
+    clientRequestId?: string;
   };
 
   if (!body.imageUrl) {
@@ -152,6 +174,7 @@ async function parseRequest(request: Request): Promise<{
     roomType: String(body.roomType || "living"),
     accountId: String(body.accountId || "guest"),
     wantMock: Boolean(body.mock),
+    clientRequestId: body.clientRequestId?.trim() || null,
   };
 }
 
@@ -182,21 +205,6 @@ async function toUsableImageUrl(file: File): Promise<string> {
   return dataUrl;
 }
 
-async function loadAccount(accountId: string) {
-  let account = await getAccount(accountId);
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    const jar = await cookies();
-    const raw = jar.get(GUEST_COOKIE)?.value;
-    if (raw != null && raw !== "") {
-      const n = Number(raw);
-      if (Number.isFinite(n)) account = { ...account, credits: n };
-    }
-  }
-
-  return account;
-}
-
 export async function POST(request: Request) {
   try {
     const input = await parseRequest(request);
@@ -211,12 +219,28 @@ export async function POST(request: Request) {
 
     const roomTypeId = resolveRoomTypeId(input.roomType) ?? ("living" as RoomTypeId);
 
-    let account = await loadAccount(input.accountId);
+    // Same-request idempotency: return cached success without re-running fal or re-charging
+    if (input.clientRequestId) {
+      const cached = await getIdempotentResult(
+        input.accountId,
+        input.clientRequestId,
+      );
+      if (cached?.response) {
+        return NextResponse.json(cached.response);
+      }
+    }
+
+    // Guests start at 0 — no anonymous free credit / cookie reset abuse
+    let account = await getAccount(input.accountId);
     if (!hasAccess(account)) {
+      const guestHint = isGuestAccountId(input.accountId)
+        ? "訪客無免費 Credit，請先登入 NovaOS 領取贈送 1 次，或至方案區購買。"
+        : "Credit 不足，請至方案區購買或訂閱後再試";
       return NextResponse.json(
         {
-          error: "Credit 不足，請至方案區購買或訂閱後再試",
+          error: guestHint,
           code: "NO_CREDIT",
+          guest: isGuestAccountId(input.accountId),
         },
         { status: 402 },
       );
@@ -231,6 +255,11 @@ export async function POST(request: Request) {
     let requestId: string | undefined;
     let message: string | undefined;
 
+    /*
+     * Credit integrity:
+     * - Do NOT consume before the fal call (timeout / failure must not charge).
+     * - Only deduct after a successful output is ready (below).
+     */
     if (!falKey) {
       /*
        * Mock fallback（本地／尚未設定金鑰時）：
@@ -259,6 +288,7 @@ export async function POST(request: Request) {
         "未設定 FAL_KEY，已使用示範圖（mock）。請在環境變數設定 FAL_KEY 以啟用真實 AI 生成。";
     } else {
       try {
+        // No credit consume before this call — failure / timeout returns without charging
         const falResult = await generateWithFal({
           imageUrl: input.imageUrl,
           prompt,
@@ -266,7 +296,7 @@ export async function POST(request: Request) {
         });
         outputUrl = falResult.outputUrl;
         requestId = falResult.requestId;
-        message = "AI 擬真圖已生成";
+        message = "AI 擬真預覽圖已生成";
       } catch (err) {
         const msg = err instanceof Error ? err.message : "FAL_FAILED";
         if (msg === "FAL_NO_OUTPUT") {
@@ -286,18 +316,36 @@ export async function POST(request: Request) {
       }
     }
 
-    // 成功後才扣點
+    // Deduct-after-success only: generate failure / timeout above never reaches here
     account = consumeCredit(account);
     await saveAccount(account);
 
     const analysis = buildAnalysis(styleId, styleLabel, roomLabel);
 
-    const response = NextResponse.json({
+    // Persist successful generation for history UI
+    let generationId: string | undefined;
+    try {
+      const saved = await saveGeneration({
+        accountId: input.accountId,
+        outputUrl,
+        style: styleId,
+        roomType: roomTypeId,
+        styleLabel,
+        roomLabel,
+      });
+      generationId = saved.id;
+    } catch (err) {
+      console.warn("save generation history failed", err);
+    }
+
+    const responseBody = {
       ok: true,
       outputUrl,
       resultImageUrl: outputUrl,
       previewMode,
       requestId,
+      generationId,
+      clientRequestId: input.clientRequestId,
       prompt,
       negativePrompt,
       analysis,
@@ -306,18 +354,21 @@ export async function POST(request: Request) {
         subscriptionEndsAt: account.subscriptionEndsAt,
       },
       message,
-    });
+    };
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      response.cookies.set(GUEST_COOKIE, String(account.credits), {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 180,
-      });
+    if (input.clientRequestId) {
+      try {
+        await saveIdempotentResult(
+          input.accountId,
+          input.clientRequestId,
+          responseBody,
+        );
+      } catch (err) {
+        console.warn("idempotency save failed", err);
+      }
     }
 
-    return response;
+    return NextResponse.json(responseBody);
   } catch (error) {
     const code = error instanceof Error ? error.message : "GENERATE_FAILED";
     if (code === "MISSING_IMAGE") {

@@ -10,6 +10,9 @@ import {
   SunMedium,
   Route,
   Download,
+  Trash2,
+  LogIn,
+  History,
 } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import {
@@ -18,6 +21,12 @@ import {
   type AiStyleId,
   type RoomTypeId,
 } from "@/lib/constants";
+import {
+  getAccountIdForRequest,
+  isAuthenticatedClient,
+  isGuestAccountId,
+} from "@/lib/account-client";
+import { getNovaOsLoginUrl } from "@/lib/novaos-hub";
 
 type Analysis = {
   styleLabel: string;
@@ -38,25 +47,23 @@ type GenerateResult = {
   message?: string;
   error?: string;
   code?: string;
+  generationId?: string;
   credits?: { remaining: number; subscriptionEndsAt: string | null };
 };
 
-function getOrCreateAccountId() {
-  const key = "nd_account_id";
-  try {
-    const existing = localStorage.getItem(key);
-    if (existing) return existing;
-    const id = `u_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
-    localStorage.setItem(key, id);
-    return id;
-  } catch {
-    return "guest";
-  }
-}
+type HistoryItem = {
+  id: string;
+  outputUrl: string;
+  style: string;
+  roomType: string;
+  styleLabel?: string;
+  roomLabel?: string;
+  createdAt: string;
+};
 
 function mapErrorMessage(status: number, data: GenerateResult): string {
   if (data.code === "NO_CREDIT" || status === 402) {
-    return data.error || "Credit 不足，請至方案區購買後再試";
+    return data.error || "Credit 不足，請先登入領取贈送或至方案區購買";
   }
   if (data.code === "IMAGE_TOO_LARGE") {
     return "圖片過大，請壓縮至 8MB 以下再上傳";
@@ -73,6 +80,14 @@ function mapErrorMessage(status: number, data: GenerateResult): string {
   return data.error || "生成失敗，請稍後再試";
 }
 
+function styleLabelOf(id: string) {
+  return AI_STYLES.find((s) => s.id === id)?.label || id;
+}
+
+function roomLabelOf(id: string) {
+  return ROOM_TYPES.find((r) => r.id === id)?.label || id;
+}
+
 export default function AiStudio() {
   const inputId = useId();
   const [style, setStyle] = useState<AiStyleId>("cream-jp");
@@ -83,15 +98,54 @@ export default function AiStudio() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [creditsLeft, setCreditsLeft] = useState<number | null>(null);
+  const [isGuest, setIsGuest] = useState(true);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  async function refreshCredits(accountId: string) {
+    try {
+      const res = await fetch(
+        `/api/credits?accountId=${encodeURIComponent(accountId)}`,
+      );
+      const data = (await res.json()) as {
+        credits?: number;
+        guest?: boolean;
+      };
+      if (typeof data.credits === "number") {
+        setCreditsLeft(data.credits);
+      }
+      setIsGuest(Boolean(data.guest ?? isGuestAccountId(accountId)));
+    } catch {
+      setCreditsLeft(0);
+    }
+  }
+
+  async function refreshHistory(accountId: string) {
+    if (!accountId || accountId === "guest") {
+      setHistory([]);
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(
+        `/api/generations?accountId=${encodeURIComponent(accountId)}`,
+      );
+      const data = (await res.json()) as {
+        generations?: HistoryItem[];
+      };
+      setHistory(Array.isArray(data.generations) ? data.generations : []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const stored = localStorage.getItem("nd_free_credits");
-    if (stored == null) {
-      localStorage.setItem("nd_free_credits", "1");
-      setCreditsLeft(1);
-    } else {
-      setCreditsLeft(Number(stored));
-    }
+    const accountId = getAccountIdForRequest();
+    setIsGuest(isGuestAccountId(accountId) || !isAuthenticatedClient());
+    void refreshCredits(accountId);
+    void refreshHistory(accountId);
   }, []);
 
   function onPickFile(next: File | null) {
@@ -118,12 +172,19 @@ export default function AiStudio() {
     setLoading(true);
     setError(null);
 
+    const accountId = getAccountIdForRequest();
+    const clientRequestId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `req_${Date.now()}`;
+
     try {
       const form = new FormData();
       form.set("image", file);
       form.set("style", style);
       form.set("roomType", roomType);
-      form.set("accountId", getOrCreateAccountId());
+      form.set("accountId", accountId);
+      form.set("clientRequestId", clientRequestId);
 
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 120_000);
@@ -141,7 +202,6 @@ export default function AiStudio() {
         setError(mapErrorMessage(res.status, data));
         if (data.code === "NO_CREDIT") {
           setCreditsLeft(0);
-          localStorage.setItem("nd_free_credits", "0");
         }
         return;
       }
@@ -149,15 +209,8 @@ export default function AiStudio() {
       setResult(data);
       if (typeof data.credits?.remaining === "number") {
         setCreditsLeft(data.credits.remaining);
-        localStorage.setItem(
-          "nd_free_credits",
-          String(data.credits.remaining),
-        );
-      } else {
-        const next = Math.max(0, (creditsLeft ?? 1) - 1);
-        setCreditsLeft(next);
-        localStorage.setItem("nd_free_credits", String(next));
       }
+      void refreshHistory(accountId);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         setError("AI 生成逾時（超過 2 分鐘），請稍後再試");
@@ -187,6 +240,22 @@ export default function AiStudio() {
     }
   }
 
+  async function handleDeleteHistory(id: string) {
+    const accountId = getAccountIdForRequest();
+    try {
+      const res = await fetch(
+        `/api/generations?accountId=${encodeURIComponent(accountId)}&id=${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
+      const data = (await res.json()) as { ok?: boolean };
+      if (data.ok) {
+        setHistory((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <section id="studio" className="section-pad bg-[rgba(247,241,232,0.55)]">
       <div className="section-shell">
@@ -194,12 +263,12 @@ export default function AiStudio() {
           <div className="max-w-2xl">
             <p className="eyebrow">AI 實時生成體驗</p>
             <h2 className="headline mt-3 text-[clamp(1.75rem,4vw,2.6rem)]">
-              上傳照片，選擇風格，立刻產出擬真圖
+              上傳照片，選擇風格，立刻產出擬真預覽圖
             </h2>
             <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
               串接 fal.ai
-              結構保留生成：動線／採光分析 + 軟裝擬真渲染。免費體驗含 1 次
-              Credit。
+              結構保留生成：動線／採光分析 + AI
+              擬真預覽圖。登入贈 1 次 Credit；訪客需登入或購買後才能生成。
             </p>
           </div>
         </Reveal>
@@ -299,25 +368,44 @@ export default function AiStudio() {
                   <span className="font-semibold text-ink">
                     {creditsLeft ?? "—"}
                   </span>
+                  {isGuest ? (
+                    <span className="mt-1 block text-xs text-ink-muted">
+                      訪客 0 次 · 請登入領取贈送
+                    </span>
+                  ) : null}
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-primary w-full sm:w-auto"
-                  disabled={loading}
-                  onClick={handleGenerate}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" aria-hidden />
-                      生成中…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} aria-hidden />
-                      立即生成 3D 擬真圖 (消耗 1 次 Credit)
-                    </>
-                  )}
-                </button>
+                {isGuest && (creditsLeft ?? 0) <= 0 ? (
+                  <a
+                    href={getNovaOsLoginUrl("/#studio")}
+                    className="btn btn-primary w-full sm:w-auto"
+                  >
+                    <LogIn size={16} aria-hidden />
+                    登入贈 1 次 Credit
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-primary w-full sm:w-auto"
+                    disabled={loading}
+                    onClick={handleGenerate}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2
+                          size={16}
+                          className="animate-spin"
+                          aria-hidden
+                        />
+                        生成中…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} aria-hidden />
+                        立即生成擬真預覽圖 (消耗 1 次 Credit)
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {loading ? (
@@ -326,18 +414,27 @@ export default function AiStudio() {
                   role="status"
                   aria-live="polite"
                 >
-                  AI 正在分析空間與渲染軟裝中…
+                  AI 正在分析空間與生成擬真預覽…
                 </p>
               ) : null}
 
               {error ? (
                 <p className="mt-4 rounded-xl border border-[rgba(180,80,60,0.25)] bg-[rgba(180,80,60,0.08)] px-4 py-3 text-sm text-[#8a3d2f]">
                   {error}
-                  {error.includes("Credit") || error.includes("方案") ? (
+                  {error.includes("Credit") ||
+                  error.includes("方案") ||
+                  error.includes("登入") ? (
                     <>
                       {" "}
                       <a href="#pricing" className="font-semibold underline">
                         前往方案收費
+                      </a>
+                      {" · "}
+                      <a
+                        href={getNovaOsLoginUrl("/#studio")}
+                        className="font-semibold underline"
+                      >
+                        登入領取
                       </a>
                     </>
                   ) : null}
@@ -370,7 +467,7 @@ export default function AiStudio() {
                     aria-hidden
                   />
                   <p className="mt-4 font-display text-lg font-semibold">
-                    AI 正在分析空間與渲染軟裝中…
+                    AI 正在分析空間與生成擬真預覽…
                   </p>
                   <p className="mt-2 text-sm text-ink-muted">
                     通常約 30 秒，請稍候
@@ -381,7 +478,7 @@ export default function AiStudio() {
                   <div className="relative aspect-[4/3] overflow-hidden rounded-[1.15rem] bg-cream">
                     <Image
                       src={outputUrl}
-                      alt="AI 擬真成果"
+                      alt="AI 擬真預覽成果"
                       fill
                       sizes="(max-width: 1024px) 100vw, 50vw"
                       className="object-cover"
@@ -469,14 +566,74 @@ export default function AiStudio() {
                     生成結果會顯示在這裡
                   </p>
                   <p className="mt-2 max-w-sm text-sm leading-6 text-ink-muted">
-                    上傳照片並選擇空間／風格後，即可獲得擬真圖與 AI
-                    空間分析報告。
+                    上傳照片並選擇空間／風格後，即可獲得 AI
+                    擬真預覽圖與空間分析報告。
                   </p>
                 </div>
               )}
             </div>
           </Reveal>
         </div>
+
+        <Reveal delayMs={120}>
+          <div className="soft-panel mt-8 p-5 md:p-7">
+            <div className="flex items-center gap-2">
+              <History size={18} className="text-accent" aria-hidden />
+              <h3 className="font-display text-lg font-semibold">生成紀錄</h3>
+            </div>
+            <p className="mt-2 text-sm text-ink-muted">
+              成功生成的擬真預覽圖會保存在此，可隨時回看或刪除。
+            </p>
+
+            {historyLoading ? (
+              <p className="mt-6 text-sm text-ink-muted">載入紀錄中…</p>
+            ) : history.length === 0 ? (
+              <p className="mt-6 text-sm text-ink-muted">
+                尚無生成紀錄。登入並完成第一次生成後會顯示在這裡。
+              </p>
+            ) : (
+              <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {history.map((item) => (
+                  <li
+                    key={item.id}
+                    className="overflow-hidden rounded-[1.1rem] border border-line bg-[rgba(253,251,247,0.85)]"
+                  >
+                    <div className="relative aspect-[4/3] bg-cream">
+                      <Image
+                        src={item.outputUrl}
+                        alt={`${item.styleLabel || styleLabelOf(item.style)} 預覽`}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover"
+                        unoptimized={item.outputUrl.startsWith("http")}
+                      />
+                    </div>
+                    <div className="flex items-start justify-between gap-2 p-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-ink">
+                          {item.styleLabel || styleLabelOf(item.style)}
+                          {" · "}
+                          {item.roomLabel || roomLabelOf(item.roomType)}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-muted">
+                          {new Date(item.createdAt).toLocaleString("zh-TW")}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line text-ink-muted transition-colors hover:border-[#b4503c]/40 hover:text-[#8a3d2f]"
+                        aria-label="刪除此紀錄"
+                        onClick={() => handleDeleteHistory(item.id)}
+                      >
+                        <Trash2 size={15} aria-hidden />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Reveal>
       </div>
     </section>
   );

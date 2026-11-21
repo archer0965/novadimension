@@ -1,4 +1,4 @@
-import { Cuboid, Images, Lightbulb, PenLine } from "lucide-react";
+import { Images, Lightbulb, PenLine, Sparkles } from "lucide-react";
 
 const steps = [
   {
@@ -9,9 +9,9 @@ const steps = [
   },
   {
     step: "02",
-    icon: Cuboid,
-    title: "3D 擬真設計",
-    description: "以 Home Planner 呈現配置與氛圍，讓你先預覽理想空間樣貌。",
+    icon: Sparkles,
+    title: "AI 擬真預覽",
+    description: "依風格產出擬真預覽圖（平面影像），先感受空間氛圍與擺設節奏。",
   },
   {
     step: "03",
@@ -22,8 +22,8 @@ const steps = [
   {
     step: "04",
     icon: Images,
-    title: "回傳 2D／3D 設計圖",
-    description: "交付對應的 2D、3D 設計圖，讓靈感清楚可見、方便後續參考。",
+    title: "回傳預覽與分析",
+    description: "交付擬真預覽圖與動線／採光文字分析，方便後續參考與溝通。",
   },
 ];
 
@@ -34,10 +34,10 @@ export default function Process() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow justify-center">設計流程</p>
           <h2 className="headline mt-3 text-[clamp(1.85rem,4vw,2.75rem)]">
-            四個步驟，從靈感到設計圖
+            四個步驟，從靈感到預覽圖
           </h2>
           <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-            以靈感設計為核心，回傳清楚的 2D、3D 圖面，讓理想空間先被看見。
+            以靈感設計為核心，產出清楚的擬真預覽與分析，讓理想空間先被看見。
           </p>
         </div>
 

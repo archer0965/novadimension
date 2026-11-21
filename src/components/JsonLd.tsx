@@ -36,7 +36,7 @@ export default function JsonLd() {
         name: "免費體驗包含什麼？",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "首次造訪可獲得 1 次 Credit，用於生成擬真預覽與基礎空間分析。",
+          text: "登入拓新雲端 NovaOS 帳號後贈送 1 次 Credit（每帳號僅一次），用於生成擬真預覽圖與基礎空間分析。清除 Cookie 無法重複領取。",
         },
       },
       {

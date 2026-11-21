@@ -45,7 +45,7 @@ export default function ConsultationForm() {
     setError("");
 
     const summary = [
-      "【拓維空間NovaDimension｜3D 軟裝設計預約】",
+      "【拓維空間NovaDimension｜AI 軟裝設計預約】",
       `稱呼：${name}`,
       `IG：${instagram}`,
       `空間類型：${form.spaceType}`,
@@ -258,7 +258,7 @@ export default function ConsultationForm() {
       </button>
 
       <p className="mt-4 text-center text-xs leading-6 text-ink-muted">
-        我們專注於 3D 空間配置與軟裝設計提案，不提供代購或實體產品介紹。
+        我們專注於空間配置與軟裝靈感提案（AI 擬真預覽），不提供代購或實體產品介紹。
         送出即表示你同意我們透過 IG 與你聯繫。
       </p>
     </form>

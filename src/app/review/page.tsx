@@ -7,7 +7,7 @@ import ReviewForm from "@/components/ReviewForm";
 
 export const metadata: Metadata = {
   title: "留下評論",
-  description: "分享你的 3D 軟裝設計體驗，幫助更多人看見理想空間的可能。",
+  description: "分享你的 AI 軟裝設計體驗，幫助更多人看見理想空間的可能。",
   alternates: {
     canonical: "/review",
   },
@@ -38,8 +38,8 @@ export default function ReviewPage() {
                 留下你的評論
               </h1>
               <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-                歡迎分享你的空間體驗。我們專注於 3D
-                軟裝設計提案，你的真實回饋會顯示在首頁客戶好評區。
+                歡迎分享你的空間體驗。我們專注於 AI
+                軟裝靈感與擬真預覽，你的真實回饋會顯示在首頁客戶好評區。
               </p>
             </div>
 

@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "空間改造",
     "動線分析",
     "採光分析",
-    "3D 擬真圖",
+    "AI 擬真預覽圖",
   ],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,

@@ -39,11 +39,11 @@ export default function OpenGraphImage() {
             拓維空間
           </div>
           <div style={{ fontSize: 34, lineHeight: 1.35, maxWidth: 820 }}>
-            不用大興土木，用 3D 預覽打造你的理想生活空間
+            不用大興土木，用 AI 擬真預覽打造你的理想生活空間
           </div>
         </div>
         <div style={{ display: "flex", fontSize: 24, color: "#5c616a" }}>
-          靈感設計 · 2D／3D 設計圖 · IG 諮詢
+          靈感設計 · 擬真預覽圖 · IG 諮詢
         </div>
       </div>
     ),

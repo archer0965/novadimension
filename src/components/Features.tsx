@@ -1,17 +1,17 @@
-import { Boxes, Images, Palette } from "lucide-react";
+import { Images, Palette, Sparkles } from "lucide-react";
 
 const features = [
   {
-    icon: Boxes,
-    title: "Home Planner 3D 視覺化",
+    icon: Sparkles,
+    title: "AI 擬真預覽圖",
     description:
-      "先看再決定。以擬真 3D 預覽呈現配置、材質與光線，讓理想空間先被看見。",
+      "上傳房間照片後，產出風格化的擬真預覽圖（平面影像），讓你先比較 Before／After 再決定方向。",
   },
   {
     icon: Images,
-    title: "2D／3D 設計圖交付",
+    title: "動線與採光分析",
     description:
-      "完成靈感設計後，回傳對應的 2D、3D 設計圖，清楚呈現風格與空間樣貌。",
+      "搭配文字分析報告，整理動線建議、採光層次與風格色盤，方便後續與設計師溝通。",
   },
   {
     icon: Palette,
@@ -31,7 +31,7 @@ export default function Features() {
             三個核心，讓軟裝提案更精準
           </h2>
           <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-            從靈感提案到 2D、3D 設計圖，我們陪你把理想空間具體看見。
+            從靈感提案到 AI 擬真預覽圖，我們陪你把理想空間具體看見。
           </p>
         </div>
 

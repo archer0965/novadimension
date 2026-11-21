@@ -16,12 +16,12 @@ export default function Hero() {
             上傳房間照片，30 秒用 AI 打造你的理想空間
           </h1>
           <p className="mt-5 max-w-xl text-base leading-8 text-ink-muted md:text-lg">
-            讓 AI 幫你做精準動線規劃、採光分析與 3D 軟裝擬真渲染。
+            讓 AI 幫你做精準動線規劃、採光分析，並產出可對照的擬真預覽圖。
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a href={getNovaOsLoginUrl()} className="btn btn-primary">
               <LogIn size={16} aria-hidden />
-              登入贈免費體驗一次
+              登入贈 1 次 Credit
             </a>
             <Link href="#studio" className="btn btn-secondary">
               <Sparkles size={16} aria-hidden />
@@ -29,7 +29,7 @@ export default function Hero() {
             </Link>
           </div>
           <p className="mt-5 text-sm text-ink-muted">
-            拓維空間 · 附屬於拓新雲端 · 登入即贈 1 次免費體驗 Credit
+            拓維空間 · 附屬於拓新雲端 · 登入贈 1 次 Credit（訪客無免費次數）
           </p>
         </div>
 

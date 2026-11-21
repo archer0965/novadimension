@@ -76,7 +76,7 @@ export default function Gallery() {
                 房間與客廳的軟裝靈感
               </h2>
               <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-                以 3D 模擬呈現風格方向與擺設節奏，點擊圖片可放大查看細節。
+                以擬真預覽圖呈現風格方向與擺設節奏，點擊圖片可放大查看細節。
               </p>
             </div>
             <p className="text-sm tracking-[0.12em] text-ink-muted uppercase">
