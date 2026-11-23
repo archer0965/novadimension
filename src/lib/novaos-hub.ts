@@ -35,7 +35,11 @@ export function getNovaOsCheckoutUrl(options?: {
   planId?: string;
   returnTo?: string;
 }): string {
-  const next = encodeURIComponent(NOVAOS_BILLING_PATH);
+  // Embed plan in hub next path so login redirect keeps it (hash alone is stripped).
+  const billingPath = options?.planId
+    ? `/dashboard/pass?plan=${encodeURIComponent(options.planId)}#dimension-upgrade`
+    : NOVAOS_BILLING_PATH;
+  const next = encodeURIComponent(billingPath);
   let url = `${NOVAOS_HUB_URL}/login?next=${next}&product=novadimension`;
   if (options?.planId) {
     url += `&plan=${encodeURIComponent(options.planId)}`;
