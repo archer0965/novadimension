@@ -49,10 +49,18 @@ export default function JsonLd() {
       },
       {
         "@type": "Question",
+        name: "是互動式 3D／可旋轉模型嗎？",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "不是。產出為 2D 擬真預覽圖（平面影像）與文字分析，並非可旋轉的 3D 模型。",
+        },
+      },
+      {
+        "@type": "Question",
         name: "如何付款？",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "付費方案透過綠界 ECPay 安全結帳，付款成功後自動開通 Credit 或訂閱。",
+          text: "付費方案透過綠界 ECPay 安全結帳，僅在付款成功回調後開通 Credit 或訂閱。",
         },
       },
     ],

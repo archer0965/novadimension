@@ -5,42 +5,61 @@ import { useEffect, useState } from "react";
 import { X, ZoomIn } from "lucide-react";
 import Reveal from "@/components/Reveal";
 
-const works = [
+type ImageKind = "real" | "ai_demo";
+
+const KIND_LABEL: Record<ImageKind, string> = {
+  real: "真實案例",
+  ai_demo: "AI 示範",
+};
+
+const works: Array<{
+  src: string;
+  title: string;
+  caption: string;
+  span: string;
+  kind: ImageKind;
+}> = [
   {
     src: "/gallery-1.jpg",
     title: "暖調客廳",
     caption: "米白沙發 × 木質層次",
     span: "md:col-span-2 md:row-span-2",
+    kind: "ai_demo",
   },
   {
     src: "/gallery-2.jpg",
     title: "臥室角落",
     caption: "柔光床頭與織品堆疊",
     span: "",
+    kind: "ai_demo",
   },
   {
     src: "/gallery-3.jpg",
     title: "閱讀角落",
     caption: "單椅、落地燈與植栽",
     span: "",
+    kind: "ai_demo",
   },
   {
     src: "/gallery-4.jpg",
     title: "開放式客廳",
     caption: "低彩度家具配置",
     span: "md:col-span-1",
+    kind: "ai_demo",
   },
   {
     src: "/gallery-5.jpg",
     title: "現代臥室",
     caption: "簡潔線條與質感布料",
     span: "",
+    kind: "ai_demo",
   },
   {
     src: "/gallery-6.jpg",
     title: "日光客廳",
     caption: "自然光下的軟裝節奏",
     span: "md:col-span-2",
+    kind: "ai_demo",
   },
 ];
 
@@ -49,6 +68,7 @@ export default function Gallery() {
     src: string;
     title: string;
     caption: string;
+    kind: ImageKind;
   } | null>(null);
 
   useEffect(() => {
@@ -76,11 +96,11 @@ export default function Gallery() {
                 房間與客廳的軟裝靈感
               </h2>
               <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-                以擬真預覽圖呈現風格方向與擺設節奏，點擊圖片可放大查看細節。
+                以下為 AI 示範擬真預覽圖，呈現風格方向與擺設節奏；點擊可放大查看細節。
               </p>
             </div>
             <p className="text-sm tracking-[0.12em] text-ink-muted uppercase">
-              Soft Space Inspiration
+              Soft Space Inspiration · AI 示範
             </p>
           </div>
         </Reveal>
@@ -96,18 +116,22 @@ export default function Gallery() {
                     src: work.src,
                     title: work.title,
                     caption: work.caption,
+                    kind: work.kind,
                   })
                 }
-                aria-label={`放大查看：${work.title}`}
+                aria-label={`放大查看：${work.title}（${KIND_LABEL[work.kind]}）`}
               >
                 <Image
                   src={work.src}
-                  alt={`${work.title}｜${work.caption}`}
+                  alt={`${work.title}｜${work.caption}｜${KIND_LABEL[work.kind]}`}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   quality={75}
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
+                <span className="absolute left-3 top-3 rounded-lg bg-[rgba(28,31,36,0.72)] px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-white">
+                  {KIND_LABEL[work.kind]}
+                </span>
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 via-ink/25 to-transparent p-5 pt-16 text-white">
                   <span className="font-display block text-lg font-semibold tracking-tight">
                     {work.title}
@@ -147,12 +171,15 @@ export default function Gallery() {
           >
             <Image
               src={lightbox.src}
-              alt={`${lightbox.title}｜${lightbox.caption}`}
+              alt={`${lightbox.title}｜${lightbox.caption}｜${KIND_LABEL[lightbox.kind]}`}
               fill
               sizes="100vw"
               className="object-contain"
               priority
             />
+            <div className="absolute left-4 top-4 rounded-lg bg-[rgba(28,31,36,0.75)] px-2.5 py-1 text-xs font-semibold text-white">
+              {KIND_LABEL[lightbox.kind]}
+            </div>
           </div>
         </div>
       ) : null}

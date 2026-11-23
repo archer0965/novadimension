@@ -30,7 +30,7 @@ export default function About() {
             </h2>
             <p className="mt-5 text-base leading-8 text-ink-muted md:text-lg">
               拓維空間 NovaDimension
-              專注 AI 軟裝與空間靈感提案。我們不做代購、不推銷單品，而是把風格、動線與氛圍，透過擬真預覽圖與文字分析呈現出來（非互動式 3D 模型）。
+              專注 AI 軟裝與空間靈感提案。我們不做代購、不推銷單品，而是把風格、動線與氛圍，透過 2D 擬真預覽圖與文字分析呈現出來（非互動式 3D、不可旋轉模型）。
             </p>
             <p className="mt-4 text-base leading-8 text-ink-muted md:text-lg">
               無論是小坪數臥室、客廳重整，或工作室角落，我們都希望你在動手前，就能篤定地看見「這就是我想要的感覺」。

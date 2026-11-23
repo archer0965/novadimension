@@ -14,6 +14,8 @@ import {
   type DailyStats,
   type StatsRange,
 } from "@/lib/analytics";
+import type { EconomicsSnapshot } from "@/lib/economics";
+import { formatMarginPct } from "@/lib/economics";
 
 type StatsResponse = {
   range: StatsRange;
@@ -30,6 +32,7 @@ type StatsResponse = {
 export default function AdminDashboard() {
   const [range, setRange] = useState<StatsRange>("1d");
   const [data, setData] = useState<StatsResponse | null>(null);
+  const [economics, setEconomics] = useState<EconomicsSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState("");
@@ -42,20 +45,31 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(`/api/analytics/stats?range=${range}`, {
-          cache: "no-store",
-        });
+        const [statsRes, econRes] = await Promise.all([
+          fetch(`/api/analytics/stats?range=${range}`, { cache: "no-store" }),
+          fetch("/api/admin/economics", { cache: "no-store" }),
+        ]);
         if (cancelled) return;
 
-        if (response.status === 401) {
+        if (statsRes.status === 401 || econRes.status === 401) {
           setUnauthorized(true);
           setData(null);
+          setEconomics(null);
           return;
         }
 
-        const json = (await response.json()) as StatsResponse;
-        if (!response.ok) {
+        const json = (await statsRes.json()) as StatsResponse;
+        if (!statsRes.ok) {
           throw new Error(json.error || "無法載入數據");
+        }
+
+        const econJson = (await econRes.json()) as {
+          ok?: boolean;
+          economics?: EconomicsSnapshot;
+          error?: string;
+        };
+        if (econRes.ok && econJson.economics) {
+          setEconomics(econJson.economics);
         }
 
         setUnauthorized(false);
@@ -237,6 +251,74 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        <section className="soft-panel mt-8 overflow-hidden">
+          <div className="border-b border-line px-5 py-4 md:px-6">
+            <h2 className="font-display text-lg font-semibold tracking-tight">
+              fal.ai 成本／毛利估算（內部）
+            </h2>
+            <p className="mt-1 text-xs leading-6 text-ink-muted">
+              唯讀分析，不改售價。假設{" "}
+              {economics
+                ? `$${economics.costPerGenerationUsd.toFixed(3)} USD ≈ NT$${economics.costPerGenerationTwd.toFixed(2)}／次`
+                : "—"}
+              （{economics?.falModel || "fal-ai/flux/dev/image-to-image"} ·{" "}
+              {economics?.assumedMegapixels ?? 1} MP · FX{" "}
+              {economics?.usdToTwd ?? 32}）
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-cream/70 text-ink-muted">
+                <tr>
+                  <th className="px-5 py-3 font-medium md:px-6">方案</th>
+                  <th className="px-5 py-3 font-medium md:px-6">售價</th>
+                  <th className="px-5 py-3 font-medium md:px-6">假設次數</th>
+                  <th className="px-5 py-3 font-medium md:px-6">fal 成本</th>
+                  <th className="px-5 py-3 font-medium md:px-6">毛利率</th>
+                  <th className="px-5 py-3 font-medium md:px-6">損益兩平</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(economics?.rows || []).map((row) => (
+                  <tr key={row.planId} className="border-t border-line">
+                    <td className="px-5 py-3 md:px-6">{row.planName}</td>
+                    <td className="px-5 py-3 md:px-6">
+                      NT${row.listPriceTwd.toLocaleString("zh-TW")}
+                    </td>
+                    <td className="px-5 py-3 md:px-6">
+                      {row.assumedGenerations}
+                    </td>
+                    <td className="px-5 py-3 md:px-6">
+                      NT${row.falCostTwd.toFixed(0)}
+                    </td>
+                    <td className="px-5 py-3 md:px-6">
+                      {formatMarginPct(row.grossMarginPct)}
+                    </td>
+                    <td className="px-5 py-3 md:px-6">
+                      {row.breakEvenGenerations ?? "—"}
+                    </td>
+                  </tr>
+                ))}
+                {!loading && !economics ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-5 py-8 text-center text-ink-muted md:px-6"
+                    >
+                      無法載入經濟學表
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+          {economics?.unlimitedAbuseRisk ? (
+            <p className="border-t border-line px-5 py-4 text-xs leading-6 text-[#8a3d2f] md:px-6">
+              無限方案濫用風險：{economics.unlimitedAbuseRisk}
+            </p>
+          ) : null}
         </section>
       </div>
     </main>

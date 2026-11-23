@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import {
-  consumeCredit,
+  consumeCreditAfterSuccess,
   getAccount,
   hasAccess,
   isGuestAccountId,
-  saveAccount,
 } from "@/lib/credits";
 import {
   buildInteriorPrompts,
@@ -259,6 +258,7 @@ export async function POST(request: Request) {
      * Credit integrity:
      * - Do NOT consume before the fal call (timeout / failure must not charge).
      * - Only deduct after a successful output is ready (below).
+     * - If a post-success side effect fails after deduct, refundCredit restores balance.
      */
     if (!falKey) {
       /*
@@ -324,8 +324,24 @@ export async function POST(request: Request) {
     }
 
     // Deduct-after-success only: generate failure / timeout above never reaches here
-    account = consumeCredit(account);
-    await saveAccount(account);
+    try {
+      account = await consumeCreditAfterSuccess(
+        account,
+        input.clientRequestId,
+      );
+    } catch (err) {
+      console.error("credit consume failed after successful generate", err);
+      // Generation succeeded but ledger write failed — do not claim charge
+      return NextResponse.json(
+        {
+          error: "生成成功但 Credit 入帳異常，請勿重試；若次數異常請聯繫客服",
+          code: "CREDIT_LEDGER_ERROR",
+          outputUrl,
+          resultImageUrl: outputUrl,
+        },
+        { status: 500 },
+      );
+    }
 
     const analysis = buildAnalysis(styleId, styleLabel, roomLabel);
 
@@ -343,6 +359,8 @@ export async function POST(request: Request) {
       generationId = saved.id;
     } catch (err) {
       console.warn("save generation history failed", err);
+      // History is best-effort; credit already deducted for successful output.
+      // Do not refund — user received the image. Idempotency covers retries.
     }
 
     const responseBody = {

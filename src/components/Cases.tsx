@@ -5,16 +5,30 @@ import { useEffect, useState } from "react";
 import { X, ZoomIn } from "lucide-react";
 import Reveal from "@/components/Reveal";
 
-const cases = [
+type ImageKind = "real" | "ai_demo";
+
+const KIND_LABEL: Record<ImageKind, string> = {
+  real: "真實案例",
+  ai_demo: "AI 示範",
+};
+
+const cases: Array<{
+  src: string;
+  title: string;
+  caption: string;
+  kind: ImageKind;
+}> = [
   {
     src: "/case-living.jpg",
     title: "小坪數客廳",
     caption: "暖色木質與簡潔線條，讓小空間顯得開闊明亮",
+    kind: "real",
   },
   {
     src: "/case-entry.jpg",
     title: "玄關設計",
     caption: "鞋架與格柵分隔，兼顧收納機能與動線引導",
+    kind: "real",
   },
 ];
 
@@ -23,6 +37,7 @@ export default function Cases() {
     src: string;
     title: string;
     caption: string;
+    kind: ImageKind;
   } | null>(null);
 
   useEffect(() => {
@@ -49,7 +64,7 @@ export default function Cases() {
               真實空間，看得見的改變
             </h2>
             <p className="mt-4 text-base leading-7 text-ink-muted md:text-lg">
-              精選已完成的客廳與玄關改造，呈現軟裝落地後的實際效果。
+              標示「真實案例」為已落地空間；與上方 AI 示範圖區分，避免誤認為現場照片。
             </p>
           </div>
         </Reveal>
@@ -65,18 +80,22 @@ export default function Cases() {
                     src: item.src,
                     title: item.title,
                     caption: item.caption,
+                    kind: item.kind,
                   })
                 }
-                aria-label={`放大查看：${item.title}`}
+                aria-label={`放大查看：${item.title}（${KIND_LABEL[item.kind]}）`}
               >
                 <Image
                   src={item.src}
-                  alt={`${item.title}｜${item.caption}`}
+                  alt={`${item.title}｜${item.caption}｜${KIND_LABEL[item.kind]}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   quality={80}
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
+                <span className="absolute left-3 top-3 rounded-lg bg-[rgba(28,31,36,0.72)] px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide text-white">
+                  {KIND_LABEL[item.kind]}
+                </span>
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/75 via-ink/30 to-transparent p-5 pt-20 text-white">
                   <span className="font-display block text-xl font-semibold tracking-tight">
                     {item.title}
@@ -116,12 +135,15 @@ export default function Cases() {
           >
             <Image
               src={lightbox.src}
-              alt={`${lightbox.title}｜${lightbox.caption}`}
+              alt={`${lightbox.title}｜${lightbox.caption}｜${KIND_LABEL[lightbox.kind]}`}
               fill
               sizes="100vw"
               className="object-contain"
               priority
             />
+            <div className="absolute left-4 top-4 rounded-lg bg-[rgba(28,31,36,0.75)] px-2.5 py-1 text-xs font-semibold text-white">
+              {KIND_LABEL[lightbox.kind]}
+            </div>
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent px-5 py-4 text-white">
               <p className="font-display text-lg font-semibold">{lightbox.title}</p>
               <p className="mt-1 text-sm text-white/85">{lightbox.caption}</p>

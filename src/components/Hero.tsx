@@ -39,10 +39,10 @@ export default function Hero() {
             beforeSrc="/gallery-1.jpg"
             afterSrc="/case-living.jpg"
             beforeLabel="改造前"
-            afterLabel="AI 擬真"
+            afterLabel="2D 擬真"
           />
           <p className="mt-3 text-center text-xs tracking-wide text-ink-muted">
-            拖曳滑塊比較 Before / After
+            拖曳滑塊比較 Before / After（2D 擬真預覽，非互動 3D）
           </p>
         </div>
       </div>

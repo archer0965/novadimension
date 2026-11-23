@@ -159,7 +159,8 @@ export default function Pricing() {
           >
             拓新雲端 NovaOS
           </a>{" "}
-          登入並完成綠界付款；免費體驗需登入領取 1 次 Credit（每帳號僅一次）。
+          登入並完成綠界付款；Credit／訂閱僅在付款成功回調後入帳（網址 ?paid=1
+          不會加點）。免費體驗需登入領取 1 次 Credit（每帳號僅一次）。
         </p>
       </div>
     </section>

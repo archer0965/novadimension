@@ -5,7 +5,7 @@ const features = [
     icon: Sparkles,
     title: "AI 擬真預覽圖",
     description:
-      "上傳房間照片後，產出風格化的擬真預覽圖（平面影像），讓你先比較 Before／After 再決定方向。",
+      "上傳房間照片後，產出風格化的 2D 擬真預覽圖（平面影像，非互動 3D），讓你先比較 Before／After 再決定方向。",
   },
   {
     icon: Images,
