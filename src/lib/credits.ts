@@ -52,7 +52,21 @@ function emptyAccount(id: string, credits = 0): CreditAccount {
   };
 }
 
-export async function getAccount(id: string): Promise<CreditAccount> {
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Canonicalize NovaOS account ids: client tokens prefix `novaos_<uuid>`,
+ * while older hub callbacks may pass a bare `<uuid>`. Always store under `novaos_<uuid>`.
+ */
+export function normalizeAccountId(raw: string): string {
+  const id = (raw || "").trim();
+  if (UUID_RE.test(id)) return `novaos_${id}`;
+  return id;
+}
+
+export async function getAccount(rawId: string): Promise<CreditAccount> {
+  const id = normalizeAccountId(rawId);
   const token = blobToken();
 
   if (!token) {
@@ -62,14 +76,15 @@ export async function getAccount(id: string): Promise<CreditAccount> {
 
   try {
     const { blobs } = await list({
-      prefix: `${PREFIX}${id}`,
+      prefix: `${PREFIX}${id}.json`,
       token,
       limit: 1,
     });
-    if (!blobs[0]) {
+    const hit = blobs[0];
+    if (!hit) {
       return emptyAccount(id, 0);
     }
-    const res = await fetch(blobs[0].url);
+    const res = await fetch(hit.url);
     if (!res.ok) throw new Error("fetch failed");
     const parsed = (await res.json()) as CreditAccount;
     return {
@@ -87,7 +102,9 @@ export async function saveAccount(account: CreditAccount): Promise<void> {
   const token = blobToken();
   if (!token) return;
 
-  await put(`${PREFIX}${account.id}.json`, JSON.stringify(account), {
+  const id = normalizeAccountId(account.id);
+  const normalized: CreditAccount = { ...account, id };
+  await put(`${PREFIX}${id}.json`, JSON.stringify(normalized), {
     access: "private",
     token,
     addRandomSuffix: false,
@@ -321,7 +338,7 @@ export async function fulfillPaidPlan(input: {
   planId: string;
   paymentId: string;
 }): Promise<FulfillPaidResult> {
-  const accountId = (input.accountId || "").trim();
+  const accountId = normalizeAccountId(input.accountId || "");
   const planId = (input.planId || "").trim();
   const paymentId = (input.paymentId || "").trim();
 
