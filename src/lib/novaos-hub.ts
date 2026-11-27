@@ -29,7 +29,7 @@ export function toReceiveReturnUrl(returnTo = "/"): string {
 
 /**
  * 付費升級：導向主站登入 → 訂閱中控（綠界 ECPay）
- * 與 DocMate／NovaStore 同一金流與帳號體系。
+ * 與 NovaStore 同一金流與帳號體系。
  */
 export function getNovaOsCheckoutUrl(options?: {
   planId?: string;
